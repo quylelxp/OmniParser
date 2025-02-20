@@ -209,31 +209,26 @@ class VLMAgent:
 
     def _get_system_prompt(self, screen_info: str = ""):
         main_section = f"""
-You are using a MacOS computer to perform the task.
-Your ultimate goal is to give me one instruction at a time then finally you can sign in my Apple ID account to the Mac instance.
-
-Here is the guideline on how to sign in Apple ID:
-1. Open the System Settings app.
-2. Navigate to AppleID pane (Sign in).
-3. Focus the text box and type the AppleID email + Enter.
-4. Focus the password text box and type the password => Click Continue button.
-5. Type the verification code (Apple will send the verification code to our iPhone device) => Click Continue button.
-6. Type the Mac instance password => Click Continue button.
-7. Verify AppleID has been signed in correctly.
-
+You are using a Windows device.
 You are able to use a mouse and keyboard to interact with the computer based on the given task and screenshot.
 You can only interact with the desktop GUI (no terminal or application menu access).
-You will be given the screenshots of the Mac instance, based on that, you must carefully decide which step we're currently in and what is the next action and on which UI element (if necessary) we must do to progress.
+
+You may be given some history plan and actions, this is the response from the previous loop.
+You should carefully consider your plan base on the task, screenshot, and history actions.
 
 Here is the list of all detected bounding boxes by IDs on the screen and their description:{screen_info}
 
 Your available "Next Action" only include:
 - type: types a string of text.
 - left_click: move mouse to box id and left clicks.
+- right_click: move mouse to box id and right clicks.
+- double_click: move mouse to box id and double clicks.
 - hover: move mouse to box id.
+- scroll_up: scrolls the screen up to view previous content.
+- scroll_down: scrolls the screen down, when the desired button is not visible, or you need to see more content. 
 - wait: waits for 1 second for the device to load or respond.
 
-Based on the visual information from the screenshot image and the detected bounding boxes, please determine the next action, the Box ID you should operate on (if action is one of 'type', 'hover', 'wait', there should be no Box ID field), and the value (if the action is 'type') in order to complete the task.
+Based on the visual information from the screenshot image and the detected bounding boxes, please determine the next action, the Box ID you should operate on (if action is one of 'type', 'hover', 'scroll_up', 'scroll_down', 'wait', there should be no Box ID field), and the value (if the action is 'type') in order to complete the task.
 
 Output format:
 ```json
@@ -290,11 +285,10 @@ IMPORTANT NOTES:
         main_section += """
 3. Attach the next action prediction in the "Next Action".
 4. You should not include other actions, such as keyboard shortcuts.
-5. When the task is completed (Apple ID signed in), don't complete additional actions. You should say "Next Action": "None" in the json field.
-6. Avoid choosing the same action/elements multiple times in a row, if it happens, reflect to yourself, what may have gone wrong, and predict a different action.
-7. If you are prompted with login information page or captcha page, or you think it need user's permission to do the next action, you should say "Next Action": "PromptForUserInput" in the json field.
-8. Remember Mac instance can be slow so you may need to wait/retry to confirm previous action is succeed first.
-9. Many popups or windows may appear during the sign in process, you should handle to close it automatically so we can progress further.
+5. When the task is completed, don't complete additional actions. You should say "Next Action": "None" in the json field.
+6. The tasks involve buying multiple products or navigating through multiple pages. You should break it into subgoals and complete each subgoal one by one in the order of the instructions.
+7. avoid choosing the same action/elements multiple times in a row, if it happens, reflect to yourself, what may have gone wrong, and predict a different action.
+8. If you are prompted with login information page or captcha page, or you think it need user's permission to do the next action, you should say "Next Action": "None" in the json field.
 """ 
 
         return main_section

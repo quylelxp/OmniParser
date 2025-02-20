@@ -13,7 +13,7 @@ from io import BytesIO
 parser = argparse.ArgumentParser()
 parser.add_argument("--log_file", help="log file path", type=str,
                     default=os.path.join(os.path.dirname(__file__), "server.log"))
-parser.add_argument("--port", help="port", type=int, default=5000)
+parser.add_argument("--port", help="port", type=int, default=5001)
 args = parser.parse_args()
 
 logging.basicConfig(filename=args.log_file,level=logging.DEBUG, filemode='w' )
