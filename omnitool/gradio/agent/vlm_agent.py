@@ -147,6 +147,9 @@ class VLMAgent:
         vlm_response_json = json.loads(vlm_response_json)
 
         img_to_show_base64 = parsed_screen["som_image_base64"]
+
+        # TODO
+
         if "Box ID" in vlm_response_json:
             try:
                 bbox = parsed_screen["parsed_content_list"][int(vlm_response_json["Box ID"])]["bbox"]
@@ -169,7 +172,7 @@ class VLMAgent:
         self.output_callback(f'<img src="data:image/png;base64,{img_to_show_base64}">', sender="bot")
         self.output_callback(
                     f'<details>'
-                    f'  <summary>Parsed Screen elemetns by OmniParser</summary>'
+                    f'  <summary>Parsed Screen elements by OmniParser</summary>'
                     f'  <pre>{screen_info}</pre>'
                     f'</details>',
                     sender="bot"
@@ -196,6 +199,8 @@ class VLMAgent:
                                         input={'action': vlm_response_json["Next Action"], 'text': vlm_response_json["value"]},
                                         name='computer', type='tool_use')
             response_content.append(sim_content_block)
+        elif vlm_response_json["Next Action"] == "prompt_for_user_input":
+            print(f"Bot requested user input.: {vlm_response_json}")
         else:
             sim_content_block = BetaToolUseBlock(id=f'toolu_{uuid.uuid4()}',
                                             input={'action': vlm_response_json["Next Action"]},
@@ -232,6 +237,7 @@ Your available "Next Action" only include:
 - left_click: move mouse to box id and left clicks.
 - hover: move mouse to box id.
 - wait: waits for 1 second for the device to load or respond.
+- promt_for_user_input: prompts the user to input a string.
 
 Based on the visual information from the screenshot image and the detected bounding boxes, please determine the next action, the Box ID you should operate on (if action is one of 'type', 'hover', 'wait', there should be no Box ID field), and the value (if the action is 'type') in order to complete the task.
 
@@ -292,7 +298,7 @@ IMPORTANT NOTES:
 4. You should not include other actions, such as keyboard shortcuts.
 5. When the task is completed (Apple ID signed in), don't complete additional actions. You should say "Next Action": "None" in the json field.
 6. Avoid choosing the same action/elements multiple times in a row, if it happens, reflect to yourself, what may have gone wrong, and predict a different action.
-7. If you are prompted with login information page or captcha page, or you think it need user's permission to do the next action, you should say "Next Action": "PromptForUserInput" in the json field.
+7. If you are prompted with login information page or verification page, or you think it need user's permission to do the next action, you should say "Next Action": "promt_for_user_input" in the json field.
 8. Remember Mac instance can be slow so you may need to wait/retry to confirm previous action is succeed first.
 9. Many popups or windows may appear during the sign in process, you should handle to close it automatically so we can progress further.
 """ 

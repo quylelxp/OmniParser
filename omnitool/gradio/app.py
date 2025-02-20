@@ -1,5 +1,5 @@
 """
-python app.py --windows_host_url localhost:8006 --omniparser_server_url localhost:8000
+python app.py --windows_host_url 172.16.19.46:5001 --omniparser_server_url localhost:8000
 """
 
 import os
@@ -35,7 +35,7 @@ Type a message and press submit to start OmniTool. Press stop to pause, and pres
 def parse_arguments():
 
     parser = argparse.ArgumentParser(description="Gradio App")
-    parser.add_argument("--windows_host_url", type=str, default='localhost:8006')
+    parser.add_argument("--windows_host_url", type=str, default='172.16.19.46:5001')
     parser.add_argument("--omniparser_server_url", type=str, default="localhost:8000")
     return parser.parse_args()
 args = parse_arguments()
@@ -190,14 +190,14 @@ def valid_params(user_input, state):
     """Validate all requirements and return a list of error messages."""
     errors = []
     
-    for server_name, url in [('Windows Host', 'localhost:5001'), ('OmniParser Server', args.omniparser_server_url)]:
+    for server_name, url in [('Windows Host', '172.16.19.46:5001'), ('OmniParser Server', args.omniparser_server_url)]:
         try:
             url = f'http://{url}/probe'
             response = requests.get(url, timeout=3)
             if response.status_code != 200:
-                errors.append(f"{server_name} is not responding")
+                errors.append(f"{server_name} is not responding with url={url}")
         except RequestException as e:
-            errors.append(f"{server_name} is not responding")
+            errors.append(f"{server_name} is not responding exception with url={url}")
     
     if not state["api_key"].strip():
         errors.append("LLM API Key is not set")
@@ -289,9 +289,9 @@ with gr.Blocks(theme=gr.themes.Default()) as demo:
     header_image = get_header_image_base64()
     if header_image:
         gr.HTML(f'<img src="{header_image}" alt="OmniTool Header" width="100%">', elem_classes="no-padding")
-        gr.HTML('<h1 style="text-align: center; font-weight: normal;">Omni<span style="font-weight: bold;">Tool</span></h1>')
+        gr.HTML('<h1 style="text-align: center; font-weight: normal;">Omni<span style="font-weight: bold;">Tool</span> (MacOS)</h1>')
     else:
-        gr.Markdown("# OmniTool")
+        gr.Markdown("# OmniTool (MacOS)")
 
     if not os.getenv("HIDE_WARNING", False):
         gr.Markdown(INTRO_TEXT, elem_classes="markdown-text")
@@ -341,14 +341,14 @@ with gr.Blocks(theme=gr.themes.Default()) as demo:
             stop_button = gr.Button(value="Stop", variant="secondary")
 
     with gr.Row():
-        with gr.Column(scale=1):
+        with gr.Column(scale=4):
             chatbot = gr.Chatbot(label="Chatbot History", autoscroll=True, height=580)
-        with gr.Column(scale=3):
-            iframe = gr.HTML(
-                f'<iframe src="http://{args.windows_host_url}/vnc.html?view_only=1&autoconnect=1&resize=scale" width="100%" height="580" allow="fullscreen"></iframe>',
-                container=False,
-                elem_classes="no-padding"
-            )
+        # with gr.Column(scale=3):
+        #     iframe = gr.HTML(
+        #         f'<iframe src="http://{args.windows_host_url}/vnc.html?view_only=1&autoconnect=1&resize=scale" width="100%" height="580" allow="fullscreen"></iframe>',
+        #         container=False,
+        #         elem_classes="no-padding"
+        #     )
 
     def update_model(model_selection, state):
         state["model"] = model_selection
